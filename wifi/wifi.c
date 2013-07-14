@@ -169,12 +169,25 @@ static int insmod(const char *filename, const char *args)
     void *module;
     unsigned int size;
     int ret;
+    char *x;
+    int  y;
+    char mac_param[64];
 
     module = load_file(filename, &size);
     if (!module)
         return -1;
 
-    ret = init_module(module, size, args);
+    if(strstr(filename,"wlan.ko")) {
+        property_get("persist.sys.wifimac",mac_param,"");
+        if(!strcmp(mac_param,"")) {
+    x=read_mac();
+                sprintf(mac_param,"mac_param=%02X:%02X:%02X:%02X:%02X:%02X ",x[5],x[4],x[3],x[2],x[1],x[0]);
+        }
+        ALOGI("Got MAC Address: %s ",mac_param);
+        ret = init_module(module, size, mac_param);
+    } else { 
+        ret = init_module(module, size, args);
+    }
 
     free(module);
 
